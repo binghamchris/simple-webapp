@@ -8,6 +8,11 @@ package {'php':
   allow_virtual => false,
 }
 
+package {'php-mysql':
+  ensure        => latest,
+  allow_virtual => false,
+}
+
 package {'php-fpm':
   ensure        => latest,
   allow_virtual => false,
@@ -27,6 +32,11 @@ nginx::resource::vhost { 'default':
   www_root    => $www_root,
   server_name => ['_'],
   require     => File['www_root', 'index_file'],
+  add_header  => {
+    'X-Frame-Options'        => 'DENY',
+    'X-XSS-Protection'       => '"1; mode=block"',
+    'X-Content-Type-Options' => 'nosniff',
+  },
 }
 
 nginx::resource::location { 'default_root':
@@ -52,6 +62,20 @@ file {'index_file':
   owner   => 'root',
   group   => 'root',
   mode    => '0755',
-  content => '<?php echo "Hello AWS!"; ?>',
+  source  => '/opt/git/simple-webapp/index.php',
   require => File['www_root'],
+}
+
+class {'::mysql::server':
+  root_password           => 'D2*rp*@qpvXOHJ7NQ*0lsZdvCF9IkE',
+  remove_default_accounts => true,
+  restart                 => true,
+}
+
+mysql::db { 'content':
+  user     => 'webapp',
+  password => 'vmJ0@DE4sH6NKp4%HD%shF7BJWSIvU',
+  host     => 'localhost',
+  grant    => ['SELECT'],
+  sql      => '/opt/git/simple-webapp/content.sql',
 }
