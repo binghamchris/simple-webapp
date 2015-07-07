@@ -11,6 +11,7 @@ package {'php':
 package {'php-mysql':
   ensure        => latest,
   allow_virtual => false,
+  require       => Package['php'],
 }
 
 package {'php-fpm':
@@ -22,7 +23,7 @@ package {'php-fpm':
 service {'php-fpm':
   ensure  => running,
   enable  => true,
-  require => Package['php-fpm'],
+  require => Package['php-fpm', 'php-mysql'],
 }
 
 nginx::resource::vhost { 'default':
